@@ -4,6 +4,8 @@ import TelegramPC from './components/TelegramPC';
 import TelegramMobile from './components/TelegramMobile';
 import ControlPanel from './components/ControlPanel';
 import PrankFloatingConsole from './components/PrankFloatingConsole';
+import MediaViewerModal from './components/MediaViewerModal';
+import MessageActionMenu from './components/MessageActionMenu';
 import { formatTime } from './utils/telegramColors';
 
 export default function App() {
@@ -13,6 +15,10 @@ export default function App() {
   // Chats State
   const [chats, setChats] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
+
+  // Media Lightbox and Message Click Actions
+  const [activeMediaPreview, setActiveMediaPreview] = useState(null);
+  const [selectedMessageForAction, setSelectedMessageForAction] = useState(null);
 
   // Control Panel overlay visibility and active initial tab
   const [isControlOpen, setIsControlOpen] = useState(false);
@@ -271,6 +277,8 @@ export default function App() {
           onSendMessage={handleSendMessage}
           onDeleteMessage={handleDeleteMessage}
           onAddNewChat={() => handleOpenControlsWithTab('chat')}
+          onViewMedia={setActiveMediaPreview}
+          onMessageClick={setSelectedMessageForAction}
         />
       ) : (
         <TelegramMobile
@@ -280,6 +288,8 @@ export default function App() {
           onOpenControls={handleOpenControlsWithTab}
           onSendMessage={handleSendMessage}
           onDeleteMessage={handleDeleteMessage}
+          onViewMedia={setActiveMediaPreview}
+          onMessageClick={setSelectedMessageForAction}
           showPhoneFrame={showPhoneFrame}
           setShowPhoneFrame={setShowPhoneFrame}
         />
@@ -299,6 +309,24 @@ export default function App() {
           onToggleFullscreen={handleToggleFullscreen}
         />
       )}
+
+      {/* Fullscreen Media Lightbox Viewer (Click image to view) */}
+      <MediaViewerModal
+        media={activeMediaPreview}
+        onClose={() => setActiveMediaPreview(null)}
+        chatName={chats.find((c) => c.id === activeChatId)?.name || 'Telegram Contact'}
+      />
+
+      {/* Click Message Action Menu (Click on message to delete or copy) */}
+      <MessageActionMenu
+        message={selectedMessageForAction}
+        onClose={() => setSelectedMessageForAction(null)}
+        onDelete={(id) => {
+          handleDeleteMessage(id);
+          showToast('Message deleted');
+        }}
+        onViewMedia={setActiveMediaPreview}
+      />
 
       {/* Floating Controls Overlay Modal */}
       <ControlPanel

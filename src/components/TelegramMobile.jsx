@@ -30,6 +30,8 @@ export default function TelegramMobile({
   onOpenControls,
   onSendMessage,
   onDeleteMessage,
+  onViewMedia,
+  onMessageClick,
   showPhoneFrame = false,
   setShowPhoneFrame
 }) {
@@ -332,6 +334,8 @@ export default function TelegramMobile({
                     key={msg.id}
                     message={msg}
                     onDeleteMessage={onDeleteMessage}
+                    onViewMedia={onViewMedia}
+                    onMessageClick={onMessageClick}
                     isMobile={true}
                     accentColor="#2481cc"
                   />

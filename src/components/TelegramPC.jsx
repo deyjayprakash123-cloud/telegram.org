@@ -28,7 +28,9 @@ export default function TelegramPC({
   onOpenControls,
   onSendMessage,
   onDeleteMessage,
-  onAddNewChat
+  onAddNewChat,
+  onViewMedia,
+  onMessageClick
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [quickInputText, setQuickInputText] = useState('');
@@ -351,6 +353,8 @@ export default function TelegramPC({
                       key={msg.id}
                       message={msg}
                       onDeleteMessage={onDeleteMessage}
+                      onViewMedia={onViewMedia}
+                      onMessageClick={onMessageClick}
                       isMobile={false}
                       accentColor="#8774e1"
                     />
