@@ -33,7 +33,8 @@ export default function TelegramMobile({
   onViewMedia,
   onMessageClick,
   showPhoneFrame = false,
-  setShowPhoneFrame
+  setShowPhoneFrame,
+  isFullscreen = false
 }) {
   const [mobileView, setMobileView] = useState(activeChatId ? 'chat' : 'list'); // 'list' | 'chat'
   const [quickInputText, setQuickInputText] = useState('');
@@ -347,19 +348,21 @@ export default function TelegramMobile({
 
           {/* ================= FULLY FUNCTIONAL MOBILE BOTTOM BAR ================= */}
           <footer className="relative z-20 bg-[#0e1621] px-2 py-2 flex items-center gap-2 border-t border-black/20 shrink-0">
-            {/* Quick Sender Switch (Incoming vs Outgoing) directly on mobile screen! */}
-            <button
-              type="button"
-              onClick={() => setQuickSender(s => s === 'in' ? 'out' : 'in')}
-              className={`h-[44px] px-2.5 rounded-full font-bold text-xs flex items-center justify-center transition-all shrink-0 shadow-sm active:scale-95 ${
-                quickSender === 'in'
-                  ? 'bg-[#212d3b] text-[#40a7e3] border border-[#2481cc]/60'
-                  : 'bg-[#2b5278] text-white border border-emerald-400/60'
-              }`}
-              title="Click to switch who is sending the message"
-            >
-              {quickSender === 'in' ? 'In ⬅' : 'Out ➔'}
-            </button>
+            {/* Quick Sender Switch - Visible during editing, automatically removed in Fullscreen on phone screen */}
+            {!isFullscreen && (
+              <button
+                type="button"
+                onClick={() => setQuickSender(s => s === 'in' ? 'out' : 'in')}
+                className={`h-[44px] px-2.5 rounded-full font-bold text-xs flex items-center justify-center transition-all shrink-0 shadow-sm active:scale-95 ${
+                  quickSender === 'in'
+                    ? 'bg-[#212d3b] text-[#40a7e3] border border-[#2481cc]/60'
+                    : 'bg-[#2b5278] text-white border border-emerald-400/60'
+                }`}
+                title="Click to switch who is sending the message"
+              >
+                {quickSender === 'in' ? 'In ⬅' : 'Out ➔'}
+              </button>
+            )}
 
             {/* Input Pill */}
             <div className="flex-1 h-[48px] px-3 bg-[#212d3b] rounded-full flex items-center gap-2 shadow-md">

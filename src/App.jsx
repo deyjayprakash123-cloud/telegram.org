@@ -309,6 +309,7 @@ export default function App() {
           onMessageClick={setSelectedMessageForAction}
           showPhoneFrame={showPhoneFrame}
           setShowPhoneFrame={setShowPhoneFrame}
+          isFullscreen={isFullscreen}
         />
       )}
 
