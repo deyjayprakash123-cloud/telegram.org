@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   Maximize2, 
@@ -14,20 +14,21 @@ import {
   Clock, 
   CheckCheck, 
   Check, 
-  AlertCircle,
-  Home,
-  RefreshCw,
-  FolderArchive,
-  Image as ImageIcon,
-  Sparkles,
-  Play,
-  Film
+  AlertCircle, 
+  Home, 
+  RefreshCw, 
+  FolderArchive, 
+  Image as ImageIcon, 
+  Sparkles, 
+  Play, 
+  Film 
 } from 'lucide-react';
 import { formatTime } from '../utils/telegramColors';
 
 export default function ControlPanel({
   isOpen,
   onClose,
+  initialTab = 'message',
   activeMode,
   onChangeMode,
   chats,
@@ -42,7 +43,13 @@ export default function ControlPanel({
   onResetAll,
   onLoadScreenshotPreset
 }) {
-  const [activeTab, setActiveTab] = useState('message'); // 'message' | 'chat' | 'display'
+  const [activeTab, setActiveTab] = useState(initialTab || 'message');
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab, isOpen]);
 
   // Message Form State
   const [msgSender, setMsgSender] = useState('in'); // 'in' | 'out'

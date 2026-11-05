@@ -79,18 +79,16 @@ export default function TelegramMobile({
   };
 
   const content = (
-    <div className="relative w-full h-full flex flex-col bg-[#0e1621] text-[#f5f5f5] overflow-hidden select-none font-sans">
-      {/* (All unwanted status bar elements like tower, network, notifications, battery have been cleanly removed!) */}
-
+    <div className="relative w-full h-full h-[100dvh] flex flex-col bg-[#0e1621] text-[#f5f5f5] overflow-hidden select-none font-sans">
       {/* ================= VIEW 1: CHAT LIST ================= */}
       {mobileView === 'list' && (
         <div className="relative flex-1 flex flex-col h-full bg-[#0e1621]">
           {/* Mobile App Bar */}
-          <header className="h-[56px] px-4 bg-[#212d3b] flex items-center justify-between shadow-md z-10">
+          <header className="h-[56px] px-4 bg-[#212d3b] flex items-center justify-between shadow-md z-10 shrink-0">
             <div className="flex items-center gap-4">
               <button
-                onClick={onOpenControls}
-                className="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center text-white/90"
+                onClick={() => onOpenControls('chat')}
+                className="w-10 h-10 rounded-full hover:bg-white/10 active:bg-white/20 flex items-center justify-center text-white/90"
                 title="Open Control Panel"
               >
                 <Menu className="w-5 h-5" />
@@ -100,8 +98,8 @@ export default function TelegramMobile({
 
             <div className="flex items-center gap-1 text-white/80">
               <button 
-                onClick={onOpenControls} 
-                className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center"
+                onClick={() => onOpenControls('chat')} 
+                className="w-9 h-9 rounded-full hover:bg-white/10 active:bg-white/20 flex items-center justify-center"
               >
                 <Search className="w-5 h-5" />
               </button>
@@ -120,8 +118,8 @@ export default function TelegramMobile({
                   Tap the pencil button below or open Controls to load your fake contact!
                 </p>
                 <button
-                  onClick={onOpenControls}
-                  className="px-4 py-2 rounded-full bg-[#2481cc] hover:bg-[#229ed9] text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-[#2481cc]/30"
+                  onClick={() => onOpenControls('chat')}
+                  className="px-4 py-2 rounded-full bg-[#2481cc] hover:bg-[#229ed9] active:scale-95 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-[#2481cc]/30"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Add New Contact</span>
@@ -200,10 +198,11 @@ export default function TelegramMobile({
             )}
           </div>
 
-          {/* Floating Action Button (FAB) */}
+          {/* Floating Action Button (FAB) in Chat List */}
           <button
-            onClick={onOpenControls}
+            onClick={() => onOpenControls('chat')}
             className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-[#2481cc] hover:bg-[#229ed9] active:scale-95 shadow-xl shadow-[#2481cc]/40 flex items-center justify-center text-white transition-all z-20"
+            title="Create New Chat"
           >
             <PenSquare className="w-6 h-6" />
           </button>
@@ -213,24 +212,25 @@ export default function TelegramMobile({
       {/* ================= VIEW 2: CHAT CONVERSATION ================= */}
       {mobileView === 'chat' && (
         <div className="relative flex-1 flex flex-col h-full bg-[#0e1621]">
-          {/* Clean Mobile Chat Top Header */}
+          {/* Mobile Chat Header */}
           <header className="h-[60px] px-3 bg-[#0e1621] flex items-center justify-between z-20 shrink-0 border-b border-black/10">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="flex items-center gap-2.5 flex-1 min-w-0">
               {/* Back to List */}
               <button
                 onClick={handleBackToList}
-                className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-white/90 shrink-0"
+                className="w-9 h-9 rounded-full hover:bg-white/10 active:bg-white/20 flex items-center justify-center text-white/90 shrink-0"
+                title="Back to Chats"
               >
                 <ArrowLeft className="w-5 h-5 stroke-[2.2]" />
               </button>
 
-              {/* Contact Profile Picture */}
+              {/* Contact Profile Picture and Details */}
               <div 
                 className="flex items-center gap-3 truncate cursor-pointer flex-1"
-                onClick={onOpenControls}
-                title="Tap to edit contact in Controls"
+                onClick={() => onOpenControls('chat')}
+                title="Tap to edit Contact Name / DP / Status"
               >
-                <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0 border border-white/10">
+                <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0 border border-white/10 shadow-sm">
                   {activeChat?.avatar ? (
                     <img
                       src={activeChat.avatar}
@@ -262,28 +262,36 @@ export default function TelegramMobile({
 
             {/* Header Right Action Icons */}
             <div className="flex items-center gap-1 text-white/90 shrink-0">
-              <button className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center" title="Voice call">
+              <button 
+                onClick={() => alert('Prank Voice Call Initiated...')}
+                className="w-9 h-9 rounded-full hover:bg-white/10 active:bg-white/20 flex items-center justify-center" 
+                title="Voice call"
+              >
                 <Phone className="w-5 h-5 stroke-[2]" />
               </button>
               <button 
-                onClick={onOpenControls} 
-                className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center"
-                title="Open Controls"
+                onClick={() => onOpenControls('message')} 
+                className="w-9 h-9 rounded-full hover:bg-white/10 active:bg-white/20 flex items-center justify-center"
+                title="Prank Options & Controls"
               >
                 <MoreVertical className="w-5 h-5 stroke-[2]" />
               </button>
             </div>
           </header>
 
-          {/* Chat Messages Body with Exact Phone Background Wallpaper! */}
+          {/* Chat Messages Body with Exact Phone Background Wallpaper */}
           <div className="relative flex-1 overflow-y-auto px-3 py-3 flex flex-col justify-start">
             {/* The Exact Telegram Mobile Doodle Wallpaper */}
             <TelegramDoodleBackground tint="mobile" opacity={0.28} />
 
             {/* Centered Info Card ("Not a contact") */}
             {activeChat?.showInfoCard !== false && (
-              <div className="relative z-10 flex justify-center mb-3 mt-1">
-                <div className="w-[280px] p-4 rounded-2xl bg-[#212d3b] border border-white/[0.04] text-center shadow-lg select-none">
+              <div 
+                onClick={() => onOpenControls('chat')}
+                className="relative z-10 flex justify-center mb-3 mt-1 cursor-pointer"
+                title="Tap to customize this card"
+              >
+                <div className="w-[280px] p-4 rounded-2xl bg-[#212d3b] hover:bg-[#253242] border border-white/[0.04] text-center shadow-lg transition-colors select-none">
                   <h3 className="font-bold text-[15px] text-white mb-0.5">
                     {activeChat?.name?.replace(/[^\w\s]/gi, '').trim() || 'Samir Patra'}
                   </h3>
@@ -302,14 +310,14 @@ export default function TelegramMobile({
               </div>
             )}
 
-            {/* Date divider pill ("November 5") */}
+            {/* Date divider pill */}
             <div className="relative z-10 flex justify-center my-2">
               <span className="px-3.5 py-1 rounded-full bg-[#1e2833]/90 backdrop-blur-sm text-[12px] text-gray-200 font-semibold border border-white/5 shadow-sm">
                 November 5
               </span>
             </div>
 
-            {/* Messages */}
+            {/* Messages Stream */}
             <div className="relative z-10 flex-1 flex flex-col space-y-1.5">
               {(!activeChat || activeChat.messages.length === 0) ? (
                 <div className="my-auto text-center text-[#7e8c99] p-6">
@@ -333,14 +341,30 @@ export default function TelegramMobile({
             </div>
           </div>
 
-          {/* Mobile Bottom Chat Bar */}
-          <footer className="relative z-20 bg-[#0e1621] px-2 py-2.5 flex items-center gap-2">
-            {/* Input pill */}
-            <div className="flex-1 h-[48px] px-3 bg-[#212d3b] rounded-full flex items-center gap-2.5 shadow-md">
+          {/* ================= FULLY FUNCTIONAL MOBILE BOTTOM BAR ================= */}
+          <footer className="relative z-20 bg-[#0e1621] px-2 py-2 flex items-center gap-2 border-t border-black/20 shrink-0">
+            {/* Quick Sender Switch (Incoming vs Outgoing) directly on mobile screen! */}
+            <button
+              type="button"
+              onClick={() => setQuickSender(s => s === 'in' ? 'out' : 'in')}
+              className={`h-[44px] px-2.5 rounded-full font-bold text-xs flex items-center justify-center transition-all shrink-0 shadow-sm active:scale-95 ${
+                quickSender === 'in'
+                  ? 'bg-[#212d3b] text-[#40a7e3] border border-[#2481cc]/60'
+                  : 'bg-[#2b5278] text-white border border-emerald-400/60'
+              }`}
+              title="Click to switch who is sending the message"
+            >
+              {quickSender === 'in' ? 'In ⬅' : 'Out ➔'}
+            </button>
+
+            {/* Input Pill */}
+            <div className="flex-1 h-[48px] px-3 bg-[#212d3b] rounded-full flex items-center gap-2 shadow-md">
               {/* GIF Button */}
               <button
                 type="button"
+                onClick={() => onOpenControls('message')}
                 className="w-7 h-5 rounded border border-[#7e8c99] flex items-center justify-center text-[10px] font-bold text-[#7e8c99] hover:text-white"
+                title="Attach Media / GIF"
               >
                 GIF
               </button>
@@ -356,12 +380,12 @@ export default function TelegramMobile({
                 />
               </form>
 
-              {/* Paperclip Attachment */}
+              {/* Paperclip Attachment - Opens Controls Directly to Attach */}
               <button
                 type="button"
-                onClick={onOpenControls}
-                className="text-[#7e8c99] hover:text-white p-1"
-                title="Attach Document/Media"
+                onClick={() => onOpenControls('message')}
+                className="text-[#7e8c99] hover:text-white active:scale-90 p-1 transition-transform"
+                title="Attach Photo / Video / Audio / Document"
               >
                 <Paperclip className="w-5 h-5 -rotate-45" />
               </button>
@@ -372,14 +396,25 @@ export default function TelegramMobile({
               <button
                 type="button"
                 onClick={handleQuickSend}
-                className="w-12 h-12 rounded-full bg-[#2481cc] active:bg-[#2075b9] flex items-center justify-center text-white transition-all shadow-lg shadow-[#2481cc]/40 shrink-0"
+                className="w-12 h-12 rounded-full bg-[#2481cc] active:bg-[#2075b9] active:scale-95 flex items-center justify-center text-white transition-all shadow-lg shadow-[#2481cc]/40 shrink-0"
+                title="Send Message"
               >
                 <Send className="w-5 h-5 translate-x-[-1px] translate-y-[-1px]" />
               </button>
             ) : (
               <button
                 type="button"
-                className="w-12 h-12 rounded-full bg-[#2481cc] active:bg-[#2075b9] flex items-center justify-center text-white transition-all shadow-lg shadow-[#2481cc]/40 shrink-0"
+                onClick={() => {
+                  onSendMessage({
+                    chatId: activeChatId,
+                    sender: quickSender,
+                    text: '🎤 Voice message (0:08)',
+                    timestamp: formatTime().replace(/^[0:]+/, ''),
+                    status: 'read'
+                  });
+                }}
+                className="w-12 h-12 rounded-full bg-[#2481cc] active:bg-[#2075b9] active:scale-95 flex items-center justify-center text-white transition-all shadow-lg shadow-[#2481cc]/40 shrink-0"
+                title="Send Fake Voice Note"
               >
                 <Mic className="w-5 h-5" />
               </button>
@@ -390,7 +425,7 @@ export default function TelegramMobile({
     </div>
   );
 
-  // If in Phone Mockup Shell:
+  // If in Phone Mockup Shell (for desktop view):
   if (showPhoneFrame) {
     return (
       <div className="relative w-full h-full bg-[#070b10] flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden">
@@ -416,7 +451,7 @@ export default function TelegramMobile({
     );
   }
 
-  // Full-width mobile responsive view
+  // Full-width mobile view
   return (
     <div className="relative w-full h-full flex flex-col">
       {/* Subtle Frame Mockup toggle pill (visible on wider screens) */}

@@ -3,7 +3,7 @@ import LandingScreen from './components/LandingScreen';
 import TelegramPC from './components/TelegramPC';
 import TelegramMobile from './components/TelegramMobile';
 import ControlPanel from './components/ControlPanel';
-import { Sliders, Sparkles, Smartphone, Monitor } from 'lucide-react';
+import PrankFloatingConsole from './components/PrankFloatingConsole';
 import { formatTime } from './utils/telegramColors';
 
 export default function App() {
@@ -14,8 +14,9 @@ export default function App() {
   const [chats, setChats] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
 
-  // Control Panel overlay visibility
+  // Control Panel overlay visibility and active initial tab
   const [isControlOpen, setIsControlOpen] = useState(false);
+  const [controlInitialTab, setControlInitialTab] = useState('message');
 
   // Mobile Mockup Phone Shell view toggle
   const [showPhoneFrame, setShowPhoneFrame] = useState(false);
@@ -28,7 +29,12 @@ export default function App() {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
-    }, 4000);
+    }, 3500);
+  };
+
+  const handleOpenControlsWithTab = (tab = 'message') => {
+    setControlInitialTab(tab);
+    setIsControlOpen(true);
   };
 
   // 1-Click exact replica of the user's uploaded phone screenshot!
@@ -113,20 +119,28 @@ export default function App() {
     };
   }, []);
 
-  // Fullscreen handler
-  const handleEnterFullscreen = async () => {
+  // Fullscreen toggle handler
+  const handleToggleFullscreen = async () => {
     try {
-      const elem = document.documentElement;
-      if (elem.requestFullscreen) {
-        await elem.requestFullscreen();
-      } else if (elem.webkitRequestFullscreen) {
-        await elem.webkitRequestFullscreen();
-      } else if (elem.msRequestFullscreen) {
-        await elem.msRequestFullscreen();
+      if (!document.fullscreenElement) {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+          await elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          await elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+          await elem.msRequestFullscreen();
+        }
+        showToast('Full screen activated! The Prank Console remains visible at the top-right.');
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+        showToast('Exited full screen.');
       }
-      showToast('Fullscreen enabled! Tap Controls anytime to edit.');
     } catch (err) {
-      console.warn('Fullscreen request failed:', err);
+      console.warn('Fullscreen toggle error:', err);
+      showToast('Fullscreen toggled.');
     }
   };
 
@@ -245,7 +259,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Main Screens based on activeMode */}
+      {/* Screens based on activeMode */}
       {activeMode === 'LANDING' ? (
         <LandingScreen onSelectMode={handleSelectMode} />
       ) : activeMode === 'PC' ? (
@@ -253,17 +267,17 @@ export default function App() {
           chats={chats}
           activeChatId={activeChatId}
           onSelectChat={setActiveChatId}
-          onOpenControls={() => setIsControlOpen(true)}
+          onOpenControls={handleOpenControlsWithTab}
           onSendMessage={handleSendMessage}
           onDeleteMessage={handleDeleteMessage}
-          onAddNewChat={() => setIsControlOpen(true)}
+          onAddNewChat={() => handleOpenControlsWithTab('chat')}
         />
       ) : (
         <TelegramMobile
           chats={chats}
           activeChatId={activeChatId}
           onSelectChat={setActiveChatId}
-          onOpenControls={() => setIsControlOpen(true)}
+          onOpenControls={handleOpenControlsWithTab}
           onSendMessage={handleSendMessage}
           onDeleteMessage={handleDeleteMessage}
           showPhoneFrame={showPhoneFrame}
@@ -271,56 +285,26 @@ export default function App() {
         />
       )}
 
-      {/* Floating Action Controls Bar */}
+      {/* Floating Prank Console (Visible & accessible even in Fullscreen, placed without colliding with bottom bar) */}
       {activeMode !== 'LANDING' && (
-        <div className="fixed bottom-4 right-4 z-40 flex items-center gap-2">
-          {/* Quick toggle mode between PC & Mobile */}
-          <button
-            onClick={() => {
-              const newMode = activeMode === 'MOBILE' ? 'PC' : 'MOBILE';
-              setActiveMode(newMode);
-              handleLoadScreenshotPreset(newMode);
-            }}
-            className="px-3 py-2 rounded-full bg-[#17212b]/90 hover:bg-[#212d3b] text-white text-xs font-semibold border border-white/10 shadow-xl flex items-center gap-1.5 backdrop-blur transition-all active:scale-95"
-            title="Switch Mode"
-          >
-            {activeMode === 'MOBILE' ? (
-              <>
-                <Monitor className="w-3.5 h-3.5 text-[#2481cc]" />
-                <span className="hidden sm:inline">Switch to PC</span>
-              </>
-            ) : (
-              <>
-                <Smartphone className="w-3.5 h-3.5 text-[#2481cc]" />
-                <span className="hidden sm:inline">Switch to Phone</span>
-              </>
-            )}
-          </button>
-
-          <button
-            onClick={() => handleLoadScreenshotPreset(activeMode)}
-            className="px-3 py-2 rounded-full bg-[#17212b]/90 hover:bg-[#212d3b] text-white text-xs font-semibold border border-[#2481cc]/40 shadow-xl flex items-center gap-1.5 backdrop-blur transition-all active:scale-95"
-            title="Reload phone screenshot replica"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden sm:inline">Match Screenshot</span>
-          </button>
-
-          <button
-            onClick={() => setIsControlOpen(true)}
-            className="group relative flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-[#2481cc] hover:bg-[#229ed9] active:scale-95 text-white shadow-xl shadow-[#2481cc]/40 transition-all"
-            title="Open Control Panel"
-          >
-            <Sliders className="w-4 h-4" />
-            <span className="text-xs font-semibold tracking-wide">Controls</span>
-          </button>
-        </div>
+        <PrankFloatingConsole
+          activeMode={activeMode}
+          onChangeMode={(mode) => {
+            setActiveMode(mode);
+            handleLoadScreenshotPreset(mode);
+          }}
+          onOpenControls={handleOpenControlsWithTab}
+          onLoadScreenshotPreset={() => handleLoadScreenshotPreset(activeMode)}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={handleToggleFullscreen}
+        />
       )}
 
       {/* Floating Controls Overlay Modal */}
       <ControlPanel
         isOpen={isControlOpen}
         onClose={() => setIsControlOpen(false)}
+        initialTab={controlInitialTab}
         activeMode={activeMode}
         onChangeMode={(mode) => {
           setActiveMode(mode);
@@ -334,7 +318,7 @@ export default function App() {
         onDeleteChat={handleDeleteChat}
         onClearChatMessages={handleClearChatMessages}
         onAddMessage={handleSendMessage}
-        onEnterFullscreen={handleEnterFullscreen}
+        onEnterFullscreen={handleToggleFullscreen}
         onResetAll={handleResetAll}
         onLoadScreenshotPreset={() => handleLoadScreenshotPreset(activeMode)}
       />
