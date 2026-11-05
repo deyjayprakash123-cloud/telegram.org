@@ -87,3 +87,4 @@ export default function MediaViewerModal({ media, onClose, chatName = 'Samir Pat
     </div>
   );
 }
+

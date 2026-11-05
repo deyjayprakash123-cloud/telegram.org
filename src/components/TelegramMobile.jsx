@@ -282,7 +282,7 @@ export default function TelegramMobile({
           </header>
 
           {/* Chat Messages Body with Exact Phone Background Wallpaper */}
-          <div className="relative flex-1 overflow-y-auto px-3 py-3 flex flex-col justify-start">
+          <div id="telegram-mobile-viewport" className="relative flex-1 overflow-y-auto px-3 py-3 flex flex-col justify-start">
             {/* The Exact Telegram Mobile Doodle Wallpaper */}
             <TelegramDoodleBackground tint="mobile" opacity={0.28} />
 
@@ -313,14 +313,14 @@ export default function TelegramMobile({
             )}
 
             {/* Date divider pill */}
-            <div className="relative z-10 flex justify-center my-2">
+            <div className="relative z-10 flex justify-center my-2.5">
               <span className="px-3.5 py-1 rounded-full bg-[#1e2833]/90 backdrop-blur-sm text-[12px] text-gray-200 font-semibold border border-white/5 shadow-sm">
                 November 5
               </span>
             </div>
 
-            {/* Messages Stream */}
-            <div className="relative z-10 flex-1 flex flex-col space-y-1.5">
+            {/* Messages Stream with comfortable breathing space */}
+            <div className="relative z-10 flex-1 flex flex-col space-y-2 pb-3">
               {(!activeChat || activeChat.messages.length === 0) ? (
                 <div className="my-auto text-center text-[#7e8c99] p-6">
                   <p className="text-sm">No messages yet.</p>

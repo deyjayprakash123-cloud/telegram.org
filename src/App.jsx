@@ -31,11 +31,28 @@ export default function App() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
+  // Clean Screenshot Mode State (All buttons disappear for taking phone hardware screenshots)
+  const [isCleanScreenActive, setIsCleanScreenActive] = useState(false);
+
   const showToast = (msg) => {
+    if (isCleanScreenActive) return; // Suppress toasts during clean screenshot mode
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
     }, 3500);
+  };
+
+  const handleStartCleanScreenMode = () => {
+    setIsCleanScreenActive(true);
+    setToastMessage('📸 Screen clean for 7 seconds! Take your phone screenshot now.');
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 2000); // toast vanishes after 2s so user has 5s of 100% clean screen
+
+    setTimeout(() => {
+      setIsCleanScreenActive(false);
+      showToast('Prank buttons restored.');
+    }, 7000);
   };
 
   const handleOpenControlsWithTab = (tab = 'message') => {
@@ -256,7 +273,7 @@ export default function App() {
   };
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-[#0e1621] font-sans">
+    <div className="relative w-full h-[100dvh] overflow-hidden bg-[#0e1621] font-sans">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-[#17212b]/95 text-white text-xs px-4 py-2.5 rounded-full border border-[#2481cc]/40 shadow-2xl backdrop-blur flex items-center gap-2 pointer-events-none animate-bounce">
@@ -307,6 +324,20 @@ export default function App() {
           onLoadScreenshotPreset={() => handleLoadScreenshotPreset(activeMode)}
           isFullscreen={isFullscreen}
           onToggleFullscreen={handleToggleFullscreen}
+          onStartCleanScreenMode={handleStartCleanScreenMode}
+          isCleanScreenActive={isCleanScreenActive}
+        />
+      )}
+
+      {/* Invisible Tap-to-Restore Trigger during Clean Screenshot Mode */}
+      {isCleanScreenActive && (
+        <div
+          onClick={() => {
+            setIsCleanScreenActive(false);
+            showToast('Prank buttons restored early.');
+          }}
+          className="fixed top-0 left-0 w-16 h-16 z-50 cursor-pointer"
+          title="Tap top-left corner to restore buttons early"
         />
       )}
 

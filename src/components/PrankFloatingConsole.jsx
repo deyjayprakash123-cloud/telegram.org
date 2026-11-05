@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sliders, 
   Sparkles, 
@@ -9,9 +9,11 @@ import {
   Plus, 
   ChevronRight, 
   ChevronLeft,
-  Settings,
-  HelpCircle
+  Camera,
+  Download,
+  EyeOff
 } from 'lucide-react';
+import html2canvas from 'html2canvas';
 
 export default function PrankFloatingConsole({
   activeMode,
@@ -19,9 +21,49 @@ export default function PrankFloatingConsole({
   onOpenControls,
   onLoadScreenshotPreset,
   isFullscreen,
-  onToggleFullscreen
+  onToggleFullscreen,
+  onStartCleanScreenMode,
+  isCleanScreenActive
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isCapturing, setIsCapturing] = useState(false);
+
+  // 1-Click capture and download PNG of the clean chat using html2canvas
+  const handleDownloadScreenshot = async () => {
+    try {
+      setIsCapturing(true);
+      // Find the active chat element
+      const targetElem = document.getElementById(
+        activeMode === 'MOBILE' ? 'telegram-mobile-viewport' : 'telegram-pc-chat-area'
+      ) || document.body;
+
+      // Small delay to let any active hover states clear
+      await new Promise(r => setTimeout(r, 150));
+
+      const canvas = await html2canvas(targetElem, {
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: activeMode === 'MOBILE' ? '#0e1621' : '#0f0f0f',
+        scale: window.devicePixelRatio || 2,
+        logging: false
+      });
+
+      const dataUrl = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = `telegram_fake_chat_${Date.now()}.png`;
+      a.click();
+    } catch (err) {
+      console.error('Screenshot download error:', err);
+    } finally {
+      setIsCapturing(false);
+    }
+  };
+
+  // If Clean Screen Mode is active, HIDE EVERYTHING so phone screenshot is 100% pristine!
+  if (isCleanScreenActive) {
+    return null;
+  }
 
   return (
     <div className="fixed top-14 right-2 sm:right-4 z-50 flex flex-col items-end gap-1.5 font-sans pointer-events-auto select-none">
@@ -42,28 +84,39 @@ export default function PrankFloatingConsole({
           </div>
 
           {/* Action Buttons Cluster */}
-          <div className="flex flex-wrap items-center justify-end gap-1.5 p-1.5 rounded-2xl bg-[#17212b]/95 border border-white/10 shadow-2xl backdrop-blur-md max-w-[280px] sm:max-w-none">
-            {/* 1. Open Full Controls */}
+          <div className="flex flex-wrap items-center justify-end gap-1.5 p-1.5 rounded-2xl bg-[#17212b]/95 border border-white/10 shadow-2xl backdrop-blur-md max-w-[290px] sm:max-w-none">
+            {/* 1. Clean Screenshot for Hardware Keys (Hides everything for 7 seconds) */}
+            <button
+              onClick={onStartCleanScreenMode}
+              className="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 active:scale-95 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-500/25 transition-all"
+              title="Hide all console buttons for 7 seconds to take screenshot with phone buttons"
+            >
+              <Camera className="w-3.5 h-3.5" />
+              <span>Clean Screen (7s)</span>
+            </button>
+
+            {/* 2. Direct PNG Download */}
+            <button
+              onClick={handleDownloadScreenshot}
+              disabled={isCapturing}
+              className="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-[#40a7e3] text-xs font-semibold flex items-center gap-1 transition-all"
+              title="Download instant clean PNG"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>{isCapturing ? 'Saving...' : 'Save PNG'}</span>
+            </button>
+
+            {/* 3. Open Full Controls */}
             <button
               onClick={() => onOpenControls('message')}
               className="px-2.5 py-1.5 rounded-xl bg-[#2481cc] hover:bg-[#229ed9] active:scale-95 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-[#2481cc]/30 transition-all"
-              title="Open Controls to add messages, media or edit contact"
+              title="Open Controls to customize contact or add media"
             >
               <Sliders className="w-3.5 h-3.5" />
               <span>Controls</span>
             </button>
 
-            {/* 2. Quick Add Media/Msg */}
-            <button
-              onClick={() => onOpenControls('message')}
-              className="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white text-xs font-medium flex items-center gap-1 transition-all"
-              title="Add Image, Video or Audio"
-            >
-              <Plus className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Add Media</span>
-            </button>
-
-            {/* 3. Switch between Phone & PC */}
+            {/* 4. Switch between Phone & PC */}
             <button
               onClick={() => {
                 const nextMode = activeMode === 'MOBILE' ? 'PC' : 'MOBILE';
@@ -85,7 +138,7 @@ export default function PrankFloatingConsole({
               )}
             </button>
 
-            {/* 4. Fullscreen Toggle */}
+            {/* 5. Fullscreen Toggle */}
             <button
               onClick={onToggleFullscreen}
               className={`px-2.5 py-1.5 rounded-xl border text-xs font-medium flex items-center gap-1 transition-all active:scale-95 ${
@@ -108,14 +161,14 @@ export default function PrankFloatingConsole({
               )}
             </button>
 
-            {/* 5. Screenshot Preset Match */}
+            {/* 6. Reset Preset */}
             <button
               onClick={onLoadScreenshotPreset}
               className="px-2 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-amber-300 text-xs font-medium flex items-center gap-1 transition-all"
               title="Reload screenshot replica"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Reset Preset</span>
+              <span className="hidden sm:inline">Reset</span>
             </button>
           </div>
         </div>
@@ -134,4 +187,3 @@ export default function PrankFloatingConsole({
     </div>
   );
 }
-

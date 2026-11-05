@@ -210,7 +210,7 @@ export default function TelegramPC({
       {/* ================= RIGHT MAIN CHAT WINDOW ================= */}
       <main className="relative flex-1 h-full flex flex-col bg-[#0f0f0f] overflow-hidden">
         {activeChat ? (
-          <div className="relative w-full h-full flex flex-col justify-between p-2 md:p-3 overflow-hidden">
+          <div id="telegram-pc-chat-area" className="relative w-full h-full flex flex-col justify-between p-2 md:p-3 overflow-hidden">
             {/* Background Doodles */}
             <TelegramDoodleBackground tint="purple" opacity={0.22} />
 

@@ -94,8 +94,10 @@ export default function MessageItem({
     }
   };
 
+  const isMediaOrDoc = message.isSingleMedia || message.isMediaGrid || message.isDocument;
+
   return (
-    <div className={`group relative flex w-full mb-1.5 px-1 sm:px-3 ${isOut ? 'justify-end' : 'justify-start'}`}>
+    <div className={`group relative flex w-full ${isMediaOrDoc ? 'mb-3.5 sm:mb-3 mt-1' : 'mb-2 sm:mb-1.5'} px-1 sm:px-3 ${isOut ? 'justify-end' : 'justify-start'}`}>
       {/* Delete button on hover for desktop */}
       {onDeleteMessage && (
         <button
