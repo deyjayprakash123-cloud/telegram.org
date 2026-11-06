@@ -65,22 +65,28 @@ export default function App() {
     const isMobileMode = mode === 'MOBILE';
     const presetId = 'samir_patra_mobile';
     
+    // Main featured chat: Samir Patra 🦁
     const screenshotChat = {
       id: presetId,
       name: 'Samir Patra 🦁',
       avatar: isMobileMode ? '/presets/mobile_avatar.jpg' : '/presets/samir_avatar.jpg',
+      phoneNumber: '+91 98765 43210',
+      countryName: 'India',
+      countryFlag: '🇮🇳',
+      registrationDate: 'February 2021',
+      isOfficialAccount: false,
       isOnline: false,
       lastSeenText: 'last seen recently',
       isVerified: false,
-      showContactBanner: !isMobileMode,
-      showInfoCard: true,
+      showContactBanner: true, // Shows ADD CONTACT / BLOCK USER banner
+      showInfoCard: true,      // Shows center card with phone, flag & date
       unreadCount: 0,
       messages: [
         {
           id: 'm_text_1',
           sender: 'in',
           text: 'Hiii',
-          timestamp: '6:35 PM',
+          timestamp: '06:35 PM',
           status: 'read'
         },
         {
@@ -92,7 +98,7 @@ export default function App() {
             fileSize: 3.7,
             format: 'wav'
           },
-          timestamp: '6:36 PM',
+          timestamp: '06:36 PM',
           status: 'read'
         },
         {
@@ -102,22 +108,155 @@ export default function App() {
           mediaItems: [
             {
               url: isMobileMode ? '/presets/mobile_vid_left.jpg' : '/presets/media_left.jpg',
-              duration: ''
+              duration: '1:38',
+              isVideo: true
             },
             {
               url: isMobileMode ? '/presets/mobile_vid_right.jpg' : '/presets/media_right.jpg',
-              duration: ''
+              duration: '0:23',
+              isVideo: true
             }
           ],
-          timestamp: '6:37 PM',
+          timestamp: '06:37 PM',
           status: 'read'
         }
       ]
     };
 
-    setChats([screenshotChat]);
+    // Realistic companion chats from user's screenshot (media_1793954649459_c7b609bb.jpg)
+    const companionChats = [
+      {
+        id: 'chat_movies_hub',
+        name: 'Movies Hub',
+        avatar: '',
+        phoneNumber: '+1 555 0192',
+        countryName: 'United States',
+        countryFlag: '🇺🇸',
+        registrationDate: 'January 2020',
+        isOnline: false,
+        lastSeenText: '11:04 PM',
+        unreadCount: 30,
+        messages: [
+          {
+            id: 'm_mh_1',
+            sender: 'in',
+            text: 'Black Sovereign: 🧿 TITLE : the movie files have been updated',
+            timestamp: '11:04 PM',
+            status: 'read'
+          }
+        ]
+      },
+      screenshotChat,
+      {
+        id: 'chat_cipher_god',
+        name: 'Cipher God',
+        avatar: '',
+        phoneNumber: '+44 7911 123456',
+        countryName: 'United Kingdom',
+        countryFlag: '🇬🇧',
+        registrationDate: 'March 2022',
+        isOnline: false,
+        lastSeenText: '12:22 AM',
+        unreadCount: 14,
+        messages: [
+          {
+            id: 'm_cg_1',
+            sender: 'in',
+            text: 'Canva laid off 1271 employees, games division restructuring announced',
+            timestamp: '12:22 AM',
+            status: 'read'
+          }
+        ]
+      },
+      {
+        id: 'chat_ritu',
+        name: 'Ritu',
+        avatar: '',
+        phoneNumber: '+91 98112 33445',
+        countryName: 'India',
+        countryFlag: '🇮🇳',
+        registrationDate: 'October 2023',
+        isOnline: false,
+        lastSeenText: 'Wed',
+        unreadCount: 0,
+        messages: [
+          {
+            id: 'm_rt_1',
+            sender: 'in',
+            text: 'Ritu joined Telegram!',
+            timestamp: 'Wed',
+            status: 'read'
+          }
+        ]
+      },
+      {
+        id: 'chat_user_mgr',
+        name: 'User manager',
+        avatar: '',
+        phoneNumber: '+91 97223 44556',
+        countryName: 'India',
+        countryFlag: '🇮🇳',
+        registrationDate: 'July 2021',
+        isOnline: false,
+        lastSeenText: 'Wed',
+        unreadCount: 0,
+        messages: [
+          {
+            id: 'm_um_1',
+            sender: 'in',
+            text: '📢 Managed Groups (2): 1. Unknown Channel...',
+            timestamp: 'Wed',
+            status: 'read'
+          }
+        ]
+      },
+      {
+        id: 'chat_sweta',
+        name: 'Sweta',
+        avatar: '',
+        phoneNumber: '+91 96334 55667',
+        countryName: 'India',
+        countryFlag: '🇮🇳',
+        registrationDate: 'May 2022',
+        isOnline: false,
+        lastSeenText: 'Sun',
+        unreadCount: 0,
+        messages: [
+          {
+            id: 'm_sw_1',
+            sender: 'out',
+            text: '↪ 🎬 📁 File Name : Obsession 2022...',
+            timestamp: 'Sun',
+            status: 'read'
+          }
+        ]
+      },
+      {
+        id: 'chat_black_sov',
+        name: 'Black Sovereign',
+        avatar: '',
+        phoneNumber: '+49 151 23456789',
+        countryName: 'Germany',
+        countryFlag: '🇩🇪',
+        registrationDate: 'November 2020',
+        isOnline: false,
+        lastSeenText: 'Sun',
+        unreadCount: 0,
+        messages: [
+          {
+            id: 'm_bs_1',
+            sender: 'in',
+            text: 'YOUR VIDEO / FILE IS SUCCESSFULLY READY',
+            timestamp: 'Sun',
+            status: 'read'
+          }
+        ]
+      }
+    ];
+
+    setChats(companionChats);
     setActiveChatId(presetId);
-    showToast('Loaded exact replica of your phone screen!');
+    showToast('Loaded exact replica of your phone screen & chats!');
   };
 
   // User chooses mode from Landing Screen
@@ -293,6 +432,7 @@ export default function App() {
           onOpenControls={handleOpenControlsWithTab}
           onSendMessage={handleSendMessage}
           onDeleteMessage={handleDeleteMessage}
+          onUpdateChat={handleUpdateChat}
           onAddNewChat={() => handleOpenControlsWithTab('chat')}
           onViewMedia={setActiveMediaPreview}
           onMessageClick={setSelectedMessageForAction}
@@ -305,6 +445,7 @@ export default function App() {
           onOpenControls={handleOpenControlsWithTab}
           onSendMessage={handleSendMessage}
           onDeleteMessage={handleDeleteMessage}
+          onUpdateChat={handleUpdateChat}
           onViewMedia={setActiveMediaPreview}
           onMessageClick={setSelectedMessageForAction}
           showPhoneFrame={showPhoneFrame}

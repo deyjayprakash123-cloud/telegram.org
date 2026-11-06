@@ -21,9 +21,13 @@ import {
   Image as ImageIcon, 
   Sparkles, 
   Play, 
-  Film 
+  Film,
+  Globe,
+  Calendar,
+  PhoneCall
 } from 'lucide-react';
 import { formatTime } from '../utils/telegramColors';
+import { COUNTRY_OPTIONS } from '../utils/countryData';
 
 export default function ControlPanel({
   isOpen,
@@ -69,13 +73,30 @@ export default function ControlPanel({
 
   // New Chat Form State
   const [newChatName, setNewChatName] = useState('Samir Patra 🦁');
+  const [newChatPhone, setNewChatPhone] = useState('+91 98765 43210');
+  const [newChatCountry, setNewChatCountry] = useState('India');
+  const [newChatFlag, setNewChatFlag] = useState('🇮🇳');
+  const [newChatRegDate, setNewChatRegDate] = useState('February 2021');
   const [newChatStatus, setNewChatStatus] = useState('last seen recently');
   const [newChatVerified, setNewChatVerified] = useState(false);
   const [newChatAvatar, setNewChatAvatar] = useState('/presets/mobile_avatar.jpg');
-  const [showBanner, setShowBanner] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
   const [showInfoCard, setShowInfoCard] = useState(true);
+  const [isOfficialAccount, setIsOfficialAccount] = useState(false);
 
   const activeChat = chats.find((c) => c.id === activeChatId);
+
+  // Handle Country selection
+  const handleCountryChange = (countryName) => {
+    const found = COUNTRY_OPTIONS.find(c => c.name === countryName);
+    if (found) {
+      setNewChatCountry(found.name);
+      setNewChatFlag(found.flag);
+      if (!newChatPhone.trim() || newChatPhone.startsWith('+')) {
+        setNewChatPhone(`${found.code} `);
+      }
+    }
+  };
 
   // Handle Image / Thumbnail file upload (converts to Data URL for instant in-memory rendering)
   const handleMediaUpload = (e, callback) => {
@@ -149,19 +170,27 @@ export default function ControlPanel({
   // Create New Chat Handler
   const handleCreateChat = (e) => {
     e.preventDefault();
-    if (!newChatName.trim()) {
-      alert('Please enter a contact name.');
+    const displayName = newChatName.trim();
+    const phone = newChatPhone.trim();
+
+    if (!displayName && !phone) {
+      alert('Please enter either a Contact Name or a Phone Number.');
       return;
     }
 
     onAddChat({
-      name: newChatName.trim(),
+      name: displayName, // If empty, will show phone!
+      phoneNumber: phone || '+91 98765 43210',
+      countryName: newChatCountry,
+      countryFlag: newChatFlag,
+      registrationDate: newChatRegDate,
       avatar: newChatAvatar,
       isOnline: newChatStatus.toLowerCase() === 'online',
       lastSeenText: newChatStatus,
       isVerified: newChatVerified,
-      showContactBanner: showBanner,
+      showContactBanner: !displayName || showBanner, // automatically show banner if no name given
       showInfoCard: showInfoCard,
+      isOfficialAccount: isOfficialAccount,
       unreadCount: 0,
       messages: []
     });
@@ -184,8 +213,8 @@ export default function ControlPanel({
               <Settings className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white leading-tight">Controls & Media Customizer</h2>
-              <p className="text-[11px] text-gray-400">Add custom images, video thumbnails, durations, audio & documents</p>
+              <h2 className="text-base font-bold text-white leading-tight">Controls & Contact Details</h2>
+              <p className="text-[11px] text-gray-400">Edit contact name, phone number, flag, registration date & media</p>
             </div>
           </div>
 
@@ -202,10 +231,10 @@ export default function ControlPanel({
           <div className="text-left w-full sm:w-auto">
             <span className="text-xs font-bold text-[#40a7e3] flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-amber-400" />
-              Reset / Reload Screenshot Replica
+              Reset / Reload Screenshot Template
             </span>
             <p className="text-[11px] text-gray-300">
-              Instantly reloads the clean phone screen with Samir Patra, 0111.wav, and video clips.
+              Loads Samir Patra, 🇮🇳 India, February 2021 registration, and the video clips.
             </p>
           </div>
           <button
@@ -217,23 +246,6 @@ export default function ControlPanel({
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>Reload Screenshot</span>
-          </button>
-        </div>
-
-        {/* Fullscreen Button */}
-        <div className="px-5 py-2.5 bg-[#171717] border-b border-white/5 flex items-center justify-between">
-          <span className="text-xs text-gray-300 flex items-center gap-1.5">
-            <Maximize2 className="w-3.5 h-3.5 text-[#40a7e3]" />
-            Full Screen Prank Mode (Hides Controls for taking screenshots)
-          </span>
-          <button
-            onClick={() => {
-              onClose();
-              onEnterFullscreen();
-            }}
-            className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition-all"
-          >
-            Go Fullscreen
           </button>
         </div>
 
@@ -260,7 +272,7 @@ export default function ControlPanel({
             }`}
           >
             <UserPlus className="w-3.5 h-3.5" />
-            <span>Contact & Settings ({chats.length})</span>
+            <span>Contact Info & Flags ({chats.length})</span>
           </button>
 
           <button
@@ -299,7 +311,7 @@ export default function ControlPanel({
                   >
                     {chats.map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.name} ({c.isOnline ? 'Online' : 'Offline'}) - {c.messages.length} msgs
+                        {c.name || c.phoneNumber || 'Contact'} ({c.isOnline ? 'Online' : 'Offline'}) - {c.messages.length} msgs
                       </option>
                     ))}
                   </select>
@@ -318,7 +330,7 @@ export default function ControlPanel({
                   }`}
                 >
                   <span className="w-2 h-2 rounded-full bg-[#40a7e3]" />
-                  <span>Incoming (From Contact / Left)</span>
+                  <span>Incoming (Left Bubble)</span>
                 </button>
 
                 <button
@@ -331,14 +343,14 @@ export default function ControlPanel({
                   }`}
                 >
                   <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                  <span>Outgoing (You / Right)</span>
+                  <span>Outgoing (Right Bubble)</span>
                 </button>
               </div>
 
               {/* Message Type Selector */}
               <div>
                 <label className="block text-xs font-semibold text-gray-300 mb-1.5">
-                  Choose Content Type to Send
+                  Content Type
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 rounded-lg bg-[#2a2a2a] p-1 border border-white/5 text-xs">
                   <button
@@ -349,7 +361,7 @@ export default function ControlPanel({
                     }`}
                   >
                     <ImageIcon className="w-3.5 h-3.5" />
-                    <span>Send Photo</span>
+                    <span>Photo</span>
                   </button>
                   <button
                     type="button"
@@ -359,7 +371,7 @@ export default function ControlPanel({
                     }`}
                   >
                     <Film className="w-3.5 h-3.5" />
-                    <span>Send Video</span>
+                    <span>Video</span>
                   </button>
                   <button
                     type="button"
@@ -378,26 +390,18 @@ export default function ControlPanel({
                     }`}
                   >
                     <FileText className="w-3.5 h-3.5" />
-                    <span>File/Audio</span>
+                    <span>Audio/Doc</span>
                   </button>
                 </div>
               </div>
 
-              {/* 1. PHOTO CUSTOMIZATION */}
+              {/* Photo Input */}
               {msgType === 'image' && (
                 <div className="p-3.5 bg-[#252525] border border-white/10 rounded-xl space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                      <ImageIcon className="w-4 h-4 text-[#40a7e3]" />
-                      Custom Image / Photo Settings
-                    </span>
-                  </div>
-
-                  {/* File Upload or Preset */}
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                     <label className="cursor-pointer px-3.5 py-2 rounded-xl bg-[#2a2a2a] hover:bg-[#333] border border-white/10 text-xs text-white font-medium flex items-center gap-2 shadow-sm">
                       <Upload className="w-3.5 h-3.5 text-[#40a7e3]" />
-                      <span>Upload Image From PC/Phone</span>
+                      <span>Upload Photo</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -408,7 +412,7 @@ export default function ControlPanel({
 
                     {customMediaUrl && (
                       <div className="flex items-center gap-2">
-                        <img src={customMediaUrl} alt="Thumbnail preview" className="w-12 h-12 rounded-lg object-cover border border-white/20" />
+                        <img src={customMediaUrl} alt="Preview" className="w-12 h-12 rounded-lg object-cover border border-white/20" />
                         <button
                           type="button"
                           onClick={() => setCustomMediaUrl('')}
@@ -420,24 +424,11 @@ export default function ControlPanel({
                     )}
                   </div>
 
-                  {/* Image URL fallback */}
                   <div>
-                    <label className="block text-[11px] text-gray-400 mb-1">Or paste Image URL:</label>
+                    <label className="block text-[11px] text-gray-400 mb-1">Caption text:</label>
                     <input
                       type="text"
-                      placeholder="https://example.com/photo.jpg"
-                      value={customMediaUrl}
-                      onChange={(e) => setCustomMediaUrl(e.target.value)}
-                      className="w-full bg-[#2a2a2a] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none focus:border-[#2481cc]"
-                    />
-                  </div>
-
-                  {/* Optional Caption */}
-                  <div>
-                    <label className="block text-[11px] text-gray-400 mb-1">Optional Caption text:</label>
-                    <input
-                      type="text"
-                      placeholder="Add an optional text caption under photo..."
+                      placeholder="Add an optional text caption..."
                       value={msgText}
                       onChange={(e) => setMsgText(e.target.value)}
                       className="w-full bg-[#2a2a2a] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none focus:border-[#2481cc]"
@@ -446,88 +437,56 @@ export default function ControlPanel({
                 </div>
               )}
 
-              {/* 2. VIDEO & THUMBNAIL CUSTOMIZATION */}
+              {/* Video Input */}
               {msgType === 'video' && (
                 <div className="p-3.5 bg-[#252525] border border-white/10 rounded-xl space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                      <Film className="w-4 h-4 text-emerald-400" />
-                      Video & Thumbnail Settings
-                    </span>
-                    <span className="text-[11px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-semibold">
-                      Play Button Overlay Included
-                    </span>
-                  </div>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                    <label className="cursor-pointer px-3.5 py-2 rounded-xl bg-[#2a2a2a] hover:bg-[#333] border border-white/10 text-xs text-white font-medium flex items-center gap-2 shadow-sm">
+                      <Upload className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Upload Thumbnail</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleMediaUpload(e, setCustomMediaUrl)}
+                      />
+                    </label>
 
-                  {/* Upload Custom Thumbnail */}
-                  <div>
-                    <label className="block text-[11px] text-gray-300 mb-1">Choose Video Thumbnail Image:</label>
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                      <label className="cursor-pointer px-3.5 py-2 rounded-xl bg-[#2a2a2a] hover:bg-[#333] border border-white/10 text-xs text-white font-medium flex items-center gap-2 shadow-sm">
-                        <Upload className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>Upload Custom Thumbnail</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handleMediaUpload(e, setCustomMediaUrl)}
-                        />
-                      </label>
-
-                      {customMediaUrl ? (
-                        <div className="relative">
-                          <img src={customMediaUrl} alt="Thumbnail" className="w-12 h-12 rounded-lg object-cover border border-white/20" />
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <Play className="w-3 h-3 fill-white text-white drop-shadow" />
-                          </div>
+                    {customMediaUrl && (
+                      <div className="relative">
+                        <img src={customMediaUrl} alt="Thumbnail" className="w-12 h-12 rounded-lg object-cover border border-white/20" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Play className="w-3 h-3 fill-white text-white drop-shadow" />
                         </div>
-                      ) : (
-                        <span className="text-[11px] text-gray-400 italic">
-                          (Leave empty to use preset video thumbnail)
-                        </span>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Thumbnail URL fallback */}
                   <div>
-                    <label className="block text-[11px] text-gray-400 mb-1">Or paste Thumbnail URL:</label>
-                    <input
-                      type="text"
-                      placeholder="https://example.com/thumbnail.jpg"
-                      value={customMediaUrl}
-                      onChange={(e) => setCustomMediaUrl(e.target.value)}
-                      className="w-full bg-[#2a2a2a] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none focus:border-[#2481cc]"
-                    />
-                  </div>
-
-                  {/* Video Duration */}
-                  <div>
-                    <label className="block text-[11px] text-gray-300 mb-1">Video Duration Pill (e.g. 1:38, 0:45):</label>
+                    <label className="block text-[11px] text-gray-300 mb-1">Duration Pill (e.g. 1:38, 0:45):</label>
                     <input
                       type="text"
                       placeholder="1:38"
                       value={videoDuration}
                       onChange={(e) => setVideoDuration(e.target.value)}
-                      className="w-full bg-[#2a2a2a] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none focus:border-[#2481cc]"
+                      className="w-full bg-[#2a2a2a] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none"
                     />
                   </div>
 
-                  {/* Optional Caption */}
                   <div>
-                    <label className="block text-[11px] text-gray-400 mb-1">Optional Video Caption:</label>
+                    <label className="block text-[11px] text-gray-400 mb-1">Caption:</label>
                     <input
                       type="text"
-                      placeholder="Add an optional text caption under video..."
+                      placeholder="Optional caption..."
                       value={msgText}
                       onChange={(e) => setMsgText(e.target.value)}
-                      className="w-full bg-[#2a2a2a] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none focus:border-[#2481cc]"
+                      className="w-full bg-[#2a2a2a] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none"
                     />
                   </div>
                 </div>
               )}
 
-              {/* 3. PLAIN TEXT */}
+              {/* Text Input */}
               {msgType === 'text' && (
                 <div>
                   <label className="block text-xs font-semibold text-gray-300 mb-1.5">
@@ -543,19 +502,9 @@ export default function ControlPanel({
                 </div>
               )}
 
-              {/* 4. FILE / AUDIO */}
+              {/* Document / Audio */}
               {msgType === 'document' && (
                 <div className="p-3.5 bg-[#252525] border border-white/10 rounded-xl space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                      <FileText className="w-4 h-4 text-[#2481cc]" />
-                      File / Audio Configuration
-                    </span>
-                    <span className="text-[11px] px-2 py-0.5 rounded bg-white/5 text-gray-300">
-                      &gt;100MB = DOC Icon | &lt;100MB = Media Icon
-                    </span>
-                  </div>
-
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-[11px] text-gray-400 mb-1">File Name</label>
@@ -568,7 +517,7 @@ export default function ControlPanel({
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] text-gray-400 mb-1">Size in MB</label>
+                      <label className="block text-[11px] text-gray-400 mb-1">Size (MB)</label>
                       <input
                         type="number"
                         placeholder="3.7"
@@ -578,7 +527,7 @@ export default function ControlPanel({
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] text-gray-400 mb-1">Format / Ext</label>
+                      <label className="block text-[11px] text-gray-400 mb-1">Format</label>
                       <input
                         type="text"
                         placeholder="wav, mp3, pdf..."
@@ -591,7 +540,7 @@ export default function ControlPanel({
                 </div>
               )}
 
-              {/* Timestamp & Read Receipts */}
+              {/* Timestamp */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <div className="flex items-center justify-between mb-1">
@@ -618,7 +567,7 @@ export default function ControlPanel({
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-300 mb-1">
-                    Outgoing Checkmarks
+                    Read Status
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
@@ -652,74 +601,196 @@ export default function ControlPanel({
                 className="w-full py-2.5 rounded-xl bg-[#2481cc] hover:bg-[#229ed9] disabled:opacity-50 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#2481cc]/30 transition-all"
               >
                 <Plus className="w-4 h-4" />
-                <span>Add Message to Active Chat</span>
+                <span>Add Message to Chat</span>
               </button>
             </form>
           )}
 
-          {/* ================= TAB 2: CHATS & CONTACTS ================= */}
+          {/* ================= TAB 2: CONTACT INFO & FLAGS ================= */}
           {activeTab === 'chat' && (
             <div className="space-y-5">
-              {/* Active Chat Toggles */}
+              {/* Active Chat Direct In-Place Editor */}
               {activeChat && (
-                <div className="p-3.5 bg-[#252525] rounded-xl border border-white/10 space-y-3">
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                    Settings for: {activeChat.name}
-                  </h4>
+                <div className="p-4 bg-[#252525] rounded-xl border border-[#2481cc]/40 space-y-3.5">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                      <Settings className="w-4 h-4 text-[#2481cc]" />
+                      <span>Editing: {activeChat.name || activeChat.phoneNumber}</span>
+                    </h4>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-semibold">
+                      Live Updates
+                    </span>
+                  </div>
 
-                  <div className="flex items-center justify-between py-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    {/* Name */}
                     <div>
-                      <span className="text-xs text-white font-medium">"Not a contact" Centered Info Card</span>
-                      <p className="text-[11px] text-gray-400">Shows the India registration card in chat</p>
+                      <label className="text-[11px] text-gray-300 font-medium block mb-1">
+                        Contact Name <span className="text-gray-400 font-normal">(Leave empty to show only Phone Number!)</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Samir Patra 🦁"
+                        value={activeChat.name || ''}
+                        onChange={(e) => onUpdateChat(activeChat.id, { name: e.target.value })}
+                        className="w-full bg-[#1e1e1e] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none focus:border-[#2481cc]"
+                      />
                     </div>
-                    <input
-                      type="checkbox"
-                      checked={activeChat.showInfoCard !== false}
-                      onChange={(e) => onUpdateChat(activeChat.id, { showInfoCard: e.target.checked })}
-                      className="w-4 h-4 rounded text-[#2481cc]"
-                    />
+
+                    {/* Phone Number */}
+                    <div>
+                      <label className="text-[11px] text-gray-300 font-medium block mb-1">
+                        Phone Number
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="+91 98765 43210"
+                        value={activeChat.phoneNumber || ''}
+                        onChange={(e) => onUpdateChat(activeChat.id, { phoneNumber: e.target.value })}
+                        className="w-full bg-[#1e1e1e] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none focus:border-[#2481cc]"
+                      />
+                    </div>
+
+                    {/* Country & Flag Selector */}
+                    <div>
+                      <label className="text-[11px] text-gray-300 font-medium block mb-1 flex items-center gap-1">
+                        <Globe className="w-3 h-3 text-[#2481cc]" />
+                        <span>Country & Flag</span>
+                      </label>
+                      <select
+                        value={activeChat.countryName || 'India'}
+                        onChange={(e) => {
+                          const found = COUNTRY_OPTIONS.find(c => c.name === e.target.value);
+                          if (found) {
+                            onUpdateChat(activeChat.id, {
+                              countryName: found.name,
+                              countryFlag: found.flag
+                            });
+                          }
+                        }}
+                        className="w-full bg-[#1e1e1e] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none focus:border-[#2481cc]"
+                      >
+                        {COUNTRY_OPTIONS.map((c) => (
+                          <option key={c.name} value={c.name}>
+                            {c.flag} {c.name} ({c.code})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Registration Date */}
+                    <div>
+                      <label className="text-[11px] text-gray-300 font-medium block mb-1 flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-[#2481cc]" />
+                        <span>Registration Date</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="February 2021"
+                        value={activeChat.registrationDate || 'February 2021'}
+                        onChange={(e) => onUpdateChat(activeChat.id, { registrationDate: e.target.value })}
+                        className="w-full bg-[#1e1e1e] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none focus:border-[#2481cc]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Toggles */}
+                  <div className="pt-2 border-t border-white/5 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <div>
+                        <span className="text-white font-medium">Show "Not a contact" Info Card</span>
+                        <p className="text-[10px] text-gray-400">Shows centered phone, flag & registration card in chat</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={activeChat.showInfoCard !== false}
+                        onChange={(e) => onUpdateChat(activeChat.id, { showInfoCard: e.target.checked })}
+                        className="w-4 h-4 rounded text-[#2481cc]"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs">
+                      <div>
+                        <span className="text-white font-medium">Show "ADD CONTACT / BLOCK USER" Banner</span>
+                        <p className="text-[10px] text-gray-400">Top action buttons for strangers (auto-shows if no name)</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={activeChat.showContactBanner !== false}
+                        onChange={(e) => onUpdateChat(activeChat.id, { showContactBanner: e.target.checked })}
+                        className="w-4 h-4 rounded text-[#2481cc]"
+                      />
+                    </div>
                   </div>
                 </div>
               )}
 
-              {/* Create New Chat */}
+              {/* Create New Chat Form */}
               <form onSubmit={handleCreateChat} className="p-4 bg-[#252525] rounded-xl border border-white/10 space-y-3">
                 <h3 className="text-xs font-bold text-white flex items-center gap-1.5">
                   <UserPlus className="w-4 h-4 text-[#2481cc]" />
-                  Create Custom Contact
+                  Create Another Contact
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] text-gray-400 mb-1">Contact Name *</label>
+                    <label className="block text-[11px] text-gray-400 mb-1">
+                      Contact Name <span className="text-gray-500">(Optional - leave blank to show number!)</span>
+                    </label>
                     <input
                       type="text"
                       placeholder="e.g. Samir Patra 🦁"
                       value={newChatName}
                       onChange={(e) => setNewChatName(e.target.value)}
-                      className="w-full bg-[#2a2a2a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-[#2481cc]"
+                      className="w-full bg-[#1e1e1e] border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-[#2481cc]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] text-gray-400 mb-1">Status / Subtitle</label>
+                    <label className="block text-[11px] text-gray-400 mb-1">Phone Number *</label>
                     <input
                       type="text"
-                      placeholder="last seen recently"
-                      value={newChatStatus}
-                      onChange={(e) => setNewChatStatus(e.target.value)}
-                      className="w-full bg-[#2a2a2a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-[#2481cc]"
+                      placeholder="+91 98765 43210"
+                      value={newChatPhone}
+                      onChange={(e) => setNewChatPhone(e.target.value)}
+                      className="w-full bg-[#1e1e1e] border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-[#2481cc]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-gray-400 mb-1">Country & Flag</label>
+                    <select
+                      value={newChatCountry}
+                      onChange={(e) => handleCountryChange(e.target.value)}
+                      className="w-full bg-[#1e1e1e] border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none"
+                    >
+                      {COUNTRY_OPTIONS.map((c) => (
+                        <option key={c.name} value={c.name}>
+                          {c.flag} {c.name} ({c.code})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-gray-400 mb-1">Registration Date</label>
+                    <input
+                      type="text"
+                      placeholder="February 2021"
+                      value={newChatRegDate}
+                      onChange={(e) => setNewChatRegDate(e.target.value)}
+                      className="w-full bg-[#1e1e1e] border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none"
                     />
                   </div>
                 </div>
 
-                {/* Avatar */}
+                {/* Avatar upload */}
                 <div>
-                  <label className="block text-[11px] text-gray-400 mb-1">Avatar / Profile Picture</label>
+                  <label className="block text-[11px] text-gray-400 mb-1">Avatar Photo</label>
                   <div className="flex items-center gap-3">
-                    <label className="cursor-pointer px-3 py-2 rounded-lg bg-[#2a2a2a] hover:bg-[#333] border border-white/10 text-xs text-gray-300 flex items-center gap-2">
+                    <label className="cursor-pointer px-3 py-1.5 rounded-lg bg-[#1e1e1e] hover:bg-[#2b2b2b] border border-white/10 text-xs text-gray-300 flex items-center gap-2">
                       <Upload className="w-3.5 h-3.5 text-[#2481cc]" />
-                      <span>Upload Avatar Photo</span>
+                      <span>Upload Avatar</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -755,7 +826,7 @@ export default function ControlPanel({
               {/* Chat list */}
               <div>
                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                  Existing Chats ({chats.length})
+                  All Chats ({chats.length})
                 </h4>
                 <div className="space-y-2">
                   {chats.map((c) => (
@@ -767,15 +838,19 @@ export default function ControlPanel({
                     >
                       <div className="flex items-center gap-2.5">
                         {c.avatar ? (
-                          <img src={c.avatar} alt={c.name} className="w-8 h-8 rounded-full object-cover" />
+                          <img src={c.avatar} alt="DP" className="w-8 h-8 rounded-full object-cover" />
                         ) : (
                           <div className="w-8 h-8 rounded-full bg-[#2481cc] flex items-center justify-center text-xs font-bold">
-                            {c.name.slice(0, 2).toUpperCase()}
+                            {(c.name || c.phoneNumber || 'C').slice(0, 2).toUpperCase()}
                           </div>
                         )}
                         <div>
-                          <p className="font-semibold text-xs text-white">{c.name}</p>
-                          <p className="text-[10px] text-gray-400">{c.messages.length} messages</p>
+                          <p className="font-semibold text-xs text-white">
+                            {c.name || c.phoneNumber || 'No Name (Number Only)'}
+                          </p>
+                          <p className="text-[10px] text-gray-400">
+                            {c.countryFlag || '🇮🇳'} {c.phoneNumber || 'No Phone'} • {c.messages.length} msgs
+                          </p>
                         </div>
                       </div>
 
@@ -815,7 +890,7 @@ export default function ControlPanel({
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-300 mb-2">
-                  Active Display Mode
+                  Display Mode
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <button

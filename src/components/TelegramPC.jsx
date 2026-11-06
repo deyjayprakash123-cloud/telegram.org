@@ -28,6 +28,7 @@ export default function TelegramPC({
   onOpenControls,
   onSendMessage,
   onDeleteMessage,
+  onUpdateChat,
   onAddNewChat,
   onViewMedia,
   onMessageClick
@@ -41,9 +42,16 @@ export default function TelegramPC({
 
   const activeChat = chats.find((c) => c.id === activeChatId);
 
+  const getContactDisplayTitle = (chat) => {
+    if (chat?.name && chat.name.trim() !== '') {
+      return chat.name;
+    }
+    return chat?.phoneNumber || '+91 98765 43210';
+  };
+
   // Filter chats by search
   const filteredChats = chats.filter((c) =>
-    c.name.toLowerCase().includes(searchQuery.toLowerCase())
+    getContactDisplayTitle(c).toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Auto-scroll to bottom of chat when new message arrives
@@ -141,12 +149,12 @@ export default function TelegramPC({
                       {chat.avatar ? (
                         <img
                           src={chat.avatar}
-                          alt={chat.name}
+                          alt={getContactDisplayTitle(chat)}
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className={`w-full h-full bg-gradient-to-tr ${getAvatarColor(chat.name)} flex items-center justify-center text-white font-medium text-base`}>
-                          {getInitials(chat.name)}
+                        <div className={`w-full h-full bg-gradient-to-tr ${getAvatarColor(getContactDisplayTitle(chat))} flex items-center justify-center text-white font-medium text-base`}>
+                          {getInitials(getContactDisplayTitle(chat))}
                         </div>
                       )}
                       {chat.isOnline && (
@@ -159,10 +167,15 @@ export default function TelegramPC({
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-1 truncate">
                           <span className="font-medium text-[15px] truncate text-white">
-                            {chat.name}
+                            {getContactDisplayTitle(chat)}
                           </span>
                           {chat.isVerified && (
                             <BadgeCheck className="w-4 h-4 text-[#8774e1] fill-[#8774e1] text-white shrink-0" />
+                          )}
+                          {!chat.name && (
+                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-semibold shrink-0">
+                              Number Only
+                            </span>
                           )}
                         </div>
                         <span className={`text-[12px] shrink-0 ml-1 ${isActive ? 'text-white/90' : 'text-[#7e8c99]'}`}>
@@ -219,7 +232,7 @@ export default function TelegramPC({
               <header className="h-[58px] px-4 bg-[#212121] rounded-2xl border border-white/[0.04] shadow-md flex items-center justify-between">
                 <div 
                   className="flex items-center gap-3 cursor-pointer flex-1 min-w-0"
-                  onClick={onOpenControls}
+                  onClick={() => onOpenControls && onOpenControls('chat')}
                   title="Click to edit contact in Controls"
                 >
                   {/* Avatar */}
@@ -227,12 +240,12 @@ export default function TelegramPC({
                     {activeChat.avatar ? (
                       <img
                         src={activeChat.avatar}
-                        alt={activeChat.name}
+                        alt={getContactDisplayTitle(activeChat)}
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className={`w-full h-full bg-gradient-to-tr ${getAvatarColor(activeChat.name)} flex items-center justify-center text-white font-medium text-sm`}>
-                        {getInitials(activeChat.name)}
+                      <div className={`w-full h-full bg-gradient-to-tr ${getAvatarColor(getContactDisplayTitle(activeChat))} flex items-center justify-center text-white font-medium text-sm`}>
+                        {getInitials(getContactDisplayTitle(activeChat))}
                       </div>
                     )}
                   </div>
@@ -241,10 +254,15 @@ export default function TelegramPC({
                   <div className="flex flex-col truncate">
                     <div className="flex items-center gap-1.5 truncate">
                       <span className="font-semibold text-[15px] text-white truncate">
-                        {activeChat.name}
+                        {getContactDisplayTitle(activeChat)}
                       </span>
                       {activeChat.isVerified && (
                         <BadgeCheck className="w-4 h-4 text-[#8774e1] fill-[#8774e1] text-white shrink-0" />
+                      )}
+                      {!activeChat.name && (
+                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-semibold shrink-0">
+                          Number Only
+                        </span>
                       )}
                     </div>
                     <span className="text-[12px] leading-tight text-[#8a8a8a]">
@@ -270,7 +288,7 @@ export default function TelegramPC({
                     <Phone className="w-5 h-5 stroke-[1.8]" />
                   </button>
                   <button 
-                    onClick={onOpenControls}
+                    onClick={() => onOpenControls && onOpenControls('message')}
                     className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors" 
                     title="Open Controls"
                   >
@@ -280,24 +298,31 @@ export default function TelegramPC({
               </header>
 
               {/* 2. "ADD CONTACT / BLOCK USER" BANNER (As seen in screenshot) */}
-              {showBanner && activeChat.showContactBanner !== false && (
+              {showBanner && (activeChat.showContactBanner !== false || !activeChat.name) && activeChat.lastSeenText !== 'blocked' && (
                 <div className="h-[40px] px-6 bg-[#212121] rounded-xl border border-white/[0.04] shadow-sm flex items-center justify-between text-xs font-semibold tracking-wide select-none">
                   <div className="flex-1 flex items-center justify-center gap-8">
                     <button 
-                      onClick={onOpenControls}
+                      onClick={() => onOpenControls && onOpenControls('chat')}
                       className="text-[#8774e1] hover:text-[#9c89ed] transition-colors uppercase text-[12px] font-bold"
                     >
                       ADD CONTACT
                     </button>
                     <button 
-                      onClick={onOpenControls}
+                      onClick={() => {
+                        if (onUpdateChat) {
+                          onUpdateChat(activeChat.id, { lastSeenText: 'blocked', isOnline: false, showContactBanner: false });
+                        }
+                      }}
                       className="text-[#ff595a] hover:text-[#ff7071] transition-colors uppercase text-[12px] font-bold"
                     >
                       BLOCK USER
                     </button>
                   </div>
                   <button 
-                    onClick={() => setShowBanner(false)}
+                    onClick={() => {
+                      setShowBanner(false);
+                      if (onUpdateChat) onUpdateChat(activeChat.id, { showContactBanner: false });
+                    }}
                     className="text-gray-400 hover:text-white p-1 rounded transition-colors"
                     title="Dismiss Banner"
                   >
@@ -311,21 +336,31 @@ export default function TelegramPC({
             <div className="relative z-10 flex-1 overflow-y-auto px-2 md:px-6 py-4 flex flex-col justify-start max-w-4xl mx-auto w-full">
               {/* Optional: "Not a contact" Info Card in Chat (Exactly matching screenshot!) */}
               {activeChat.showInfoCard !== false && (
-                <div className="flex justify-center mb-4">
-                  <div className="w-[300px] p-4 rounded-2xl bg-[#212121] border border-white/[0.04] text-center shadow-lg select-none">
-                    <h3 className="font-bold text-[15px] text-white mb-0.5">
-                      {activeChat.name?.replace(/[^\w\s]/gi, '').trim() || 'Contact'}
+                <div 
+                  onClick={() => onOpenControls && onOpenControls('chat')}
+                  className="flex justify-center mb-4 cursor-pointer"
+                  title="Click to edit Phone, Country Flag, or Registration Date in Controls"
+                >
+                  <div className="w-[300px] p-4 rounded-2xl bg-[#212121] hover:bg-[#252525] border border-white/[0.04] text-center shadow-lg transition-colors select-none">
+                    <h3 className="font-bold text-[15px] text-white mb-0.5 truncate">
+                      {getContactDisplayTitle(activeChat)}
                     </h3>
                     <p className="text-[12px] text-[#828e99] mb-3">
-                      Not a contact
+                      {activeChat.name ? 'Not a contact' : 'Unknown Contact'}
                     </p>
                     <div className="text-[12px] text-[#b2bcc5] space-y-1 mb-3">
-                      <p>Phone Number 🇮🇳 India</p>
-                      <p>Registration February 2021</p>
+                      <p className="flex items-center justify-center gap-1.5">
+                        <span>Phone Number</span>
+                        <span>{activeChat.countryFlag || '🇮🇳'}</span>
+                        <span className="text-white font-medium">{activeChat.countryName || 'India'}</span>
+                      </p>
+                      <p className="text-[#8fa0b0]">
+                        Registration <span className="text-white font-medium">{activeChat.registrationDate || 'February 2021'}</span>
+                      </p>
                     </div>
                     <div className="text-[11px] text-[#77828c] flex items-center justify-center gap-1">
                       <Info className="w-3.5 h-3.5 inline text-[#77828c]" />
-                      <span>Not an official account</span>
+                      <span>{activeChat.isOfficialAccount ? 'Official account' : 'Not an official account'}</span>
                     </div>
                   </div>
                 </div>
